@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="760" viewBox="0 0 960 760" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <style>
+      .title  { font-size: 24px; font-weight: 700; fill: #1f2328; }
+      .sub    { font-size: 14px; fill: #656d76; }
+      .h      { font-size: 16px; font-weight: 700; fill: #1f2328; }
+      .lbl    { font-size: 13px; fill: #1f2328; }
+      .mono   { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+      .formula{ font-size: 18px; fill: #1f2328; }
+      .small  { font-size: 12px; fill: #656d76; }
+      .note   { font-size: 12.5px; fill: #656d76; }
+      .cap    { font-size: 13px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="760" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="40" y="46" class="title">Windowed KV Cache: ~48% per-request memory reduction</text>
+  <text x="40" y="70" class="sub">gpt-oss-20B on the MLX backend &#8212; derived analytically from the model's layer structure (SGLang #30091 / #34166)</text>
+  <line x1="40" y1="84" x2="920" y2="84" stroke="#d0d7de" stroke-width="1"/>
+
+  <!-- Section 1: layer structure -->
+  <text x="40" y="118" class="h">1. gpt-oss-20B has 24 layers &#8212; exactly half are sliding-window</text>
+  <text x="40" y="140" class="note">layer_types alternate sliding / full; sliding_window = 128 tokens (from config.json)</text>
+
+  <!-- 24 layer bars, alternating -->
+  <g transform="translate(40,158)">
+    <!-- draw 24 cells, 12 sliding (orange) + 12 full (blue) alternating -->
+    <!-- row of cells -->
+    <g>
+      <!-- generated cells -->
+      <!-- cell width 34, gap 2 -->
+      <rect x="0"   y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="36"  y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="72"  y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="108" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="144" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="180" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="216" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="252" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="288" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="324" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="360" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="396" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="432" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="468" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="504" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="540" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="576" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="612" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="648" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="684" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="720" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="756" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+      <rect x="792" y="0" width="34" height="30" rx="3" fill="#fb8500"/>
+      <rect x="828" y="0" width="34" height="30" rx="3" fill="#0969da"/>
+    </g>
+    <!-- legend -->
+    <g transform="translate(0,48)">
+      <rect x="0" y="0" width="14" height="14" rx="2" fill="#fb8500"/>
+      <text x="20" y="12" class="lbl">12 sliding-window layers &#8212; each only needs the last <tspan class="mono">128</tspan> tokens</text>
+      <rect x="470" y="0" width="14" height="14" rx="2" fill="#0969da"/>
+      <text x="490" y="12" class="lbl">12 full-attention layers &#8212; each needs all <tspan class="mono">L</tspan> tokens</text>
+    </g>
+  </g>
+
+  <!-- Section 2: baseline vs windowed -->
+  <text x="40" y="278" class="h">2. Count how many tokens the KV cache stores (per layer, one request)</text>
+  <text x="40" y="300" class="note">Every layer stores the same fixed block per token, so it cancels in the ratio &#8212; count it as "1 unit" and just count tokens.</text>
+
+  <!-- baseline box -->
+  <g transform="translate(40,318)">
+    <rect x="0" y="0" width="420" height="118" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
+    <text x="20" y="28" class="h">Baseline (full KV)</text>
+    <text x="20" y="52" class="lbl">Every layer stores all L tokens:</text>
+    <text x="20" y="86" class="formula mono">24 layers &#215; L</text>
+    <text x="20" y="106" class="small">all 24 layers pay the full length L</text>
+  </g>
+
+  <!-- windowed box -->
+  <g transform="translate(500,318)">
+    <rect x="0" y="0" width="420" height="118" rx="8" fill="#fff8f0" stroke="#f0b37e"/>
+    <text x="20" y="28" class="h">Windowed KV cache</text>
+    <text x="20" y="52" class="lbl">Sliding layers keep only the last 128:</text>
+    <text x="20" y="86" class="formula mono">12 &#215; L  +  12 &#215; 128</text>
+    <text x="20" y="106" class="small">12 full layers pay L; 12 sliding layers pay only 128</text>
+  </g>
+
+  <!-- Section 3: the math -->
+  <text x="40" y="480" class="h">3. Reduction = (before &#8722; after) / before</text>
+
+  <g transform="translate(40,498)">
+    <rect x="0" y="0" width="500" height="150" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
+    <text x="24" y="40" class="formula mono">reduction = 1 &#8722; (12L + 12&#215;128) / (24L)</text>
+    <text x="24" y="74" class="formula mono">          = 1 &#8722; (L + 128) / (2L)</text>
+    <text x="60" y="104" class="formula mono">          = 1/2 &#8722; 64/L</text>
+    <rect x="24" y="118" width="452" height="20" fill="none"/>
+    <text x="24" y="132" class="small">Valid once L &#8805; window (128). Divide top &amp; bottom by 12, then split the fraction.</text>
+  </g>
+
+  <!-- table -->
+  <g transform="translate(560,498)">
+    <rect x="0" y="0" width="360" height="150" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+    <text x="20" y="30" class="h">Plug in the context length L</text>
+    <!-- header -->
+    <line x1="16" y1="44" x2="344" y2="44" stroke="#d0d7de"/>
+    <text x="24"  y="66" class="lbl mono">L = 2048</text><text x="220" y="66" class="lbl">&#8594;  47%</text>
+    <text x="24"  y="90" class="lbl mono" font-weight="700">L = 4096</text><text x="220" y="90" class="lbl" font-weight="700">&#8594;  48%</text>
+    <text x="24"  y="114" class="lbl mono">L = 8192</text><text x="220" y="114" class="lbl">&#8594;  49%</text>
+    <text x="24"  y="138" class="lbl mono">L &#8594; &#8734;</text><text x="220" y="138" class="lbl">&#8594;  50% (ceiling)</text>
+  </g>
+
+  <!-- footer takeaway -->
+  <g transform="translate(40,672)">
+    <rect x="0" y="0" width="880" height="60" rx="8" fill="#eaf5ea" stroke="#aacfa9"/>
+    <text x="20" y="26" class="lbl" font-weight="700">Takeaway</text>
+    <text x="20" y="48" class="note">Half of gpt-oss's 24 layers are sliding-window, so windowing them approaches a 50% ceiling; at a few-thousand-token context it lands at ~48%. Analytical, not benchmarked.</text>
+  </g>
+</svg>
